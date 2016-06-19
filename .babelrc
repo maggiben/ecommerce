@@ -1,0 +1,19 @@
+{
+    "presets": [
+        "es2015",
+        "stage-0"
+    ],
+    "comments": false,
+    "ignore": [
+        "node_modules", "bower_components"
+    ],
+    "plugins": [
+        "transform-async-to-generator",
+        [
+            "transform-runtime", {
+                "polyfill": false,
+                "regenerator": true
+            }
+        ]
+    ]
+}
