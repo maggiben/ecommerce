@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "compile": "babel -d dist/ ./index.js",
-    "start": "babel-node index.js",
+    "start": "node index.js",
     "crawl": "babel-node crawler.js",
     "save": "babel-node test.js"
   },
+  "main": "node index.js",
   "author": "benjamin maggi",
   "license": "MIT",
   "dependencies": {
