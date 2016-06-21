@@ -1,8 +1,11 @@
 // ./src/schema/node.js
 import { nodeDefinitions } from 'graphql-relay';
 
-import { idFetcher, typeResolver } from './registry';
+import { 
+  idFetcher, 
+  typeResolver 
+} from './registry';
 
 export const { nodeInterface, nodeField } = nodeDefinitions(
-	idFetcher, typeResolver
+  idFetcher, typeResolver
 );
