@@ -23,9 +23,10 @@ export default class Moltin {
   endpoint(endpoint) {
     let endpoints = {
       'PRODUCTS': 'products',
-      'SEARCH': 'products/search',
+      'SEARCH_PRODUCTS': 'products/search',
       'IMAGES': 'files',
       'CATEGORIES': 'categories',
+      'SEARCH_CATEGORIES': 'categories/search',
       'TREE': 'categories/tree',
       'TAXES': 'taxes',
       'FLOWS': 'flows'
@@ -49,15 +50,14 @@ export default class Moltin {
     if(this.authData) {
       return Promise.resolve(this.authData);
     }
-    let AUTH_URL = 'https://api.molt.in/oauth/access_token';
     console.log(this.AUTH_URL)
-    console.log(AUTH_URL)
     return got(this.AUTH_URL, {
         method: 'POST',
         body: this.options.credentials,
         json: true
       })
       .then(response => {
+        console.log(response.body)
         this.authData = response.body;
         return response.body;
       });
@@ -101,7 +101,7 @@ export default class Moltin {
     return got(uri, { encoding: null }).then(response => response.body);
   }
 
-  request(url, options = {}) { 
+  request(url, options = {}) {
     return this.authenticate()
     .then(auth => {
       options = Object.assign(options, {
@@ -129,7 +129,11 @@ export default class Moltin {
             assign_to: prod.id
           }, img)})
         )
-        .then(imgs => { return { product: prod, images: imgs }; });
+        .then(imgs => { return {
+          product: prod,
+          images: imgs
+        };
+      });
     });
   }
 

@@ -28,10 +28,7 @@
     "moltin-util": "0.0.16",
     "node-fetch": "^1.5.3",
     "request": "^2.72.0",
-    "requestretry": "^1.8.0",
-    "schema-client": "^2.2.1",
-    "uri-templates": "^0.2.0",
-    "urijs": "^1.18.1"
+    "requestretry": "^1.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.9.0",

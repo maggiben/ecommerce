@@ -172,7 +172,7 @@ const pathnames = [
     '/nike/nike-skateboarding/dunk-sb-low-95',
     '/nike/nike-skateboarding/dunk-sb-mid-96',
     '/nike/nike-skateboarding/janoski',
-    '/nike/nike-skateboarding/other-skateboarding' 
+    '/nike/nike-skateboarding/other-skateboarding'
 ];
 
 /*
@@ -183,7 +183,7 @@ Array.prototype.getUnique = function() {
 //javascript:%20(function(){var%20el=document.createElement('div'),b=document.getElementsByTagName('body')[0];otherlib=false,msg='';el.style.position='fixed';el.style.height='32px';el.style.width='220px';el.style.marginLeft='-110px';el.style.top='0';el.style.left='50%';el.style.padding='5px%2010px';el.style.zIndex=1001;el.style.fontSize='12px';el.style.color='#222';el.style.backgroundColor='#f99';if(typeof%20jQuery!='undefined'){msg='This%20page%20already%20using%20jQuery%20v'+jQuery.fn.jquery;return%20showMsg();}else%20if(typeof%20$=='function'){otherlib=true;}%20function%20getScript(url,success){var%20script=document.createElement('script');script.src=url;var%20head=document.getElementsByTagName('head')[0],done=false;script.onload=script.onreadystatechange=function(){if(!done&&(!this.readyState||this.readyState=='loaded'||this.readyState=='complete')){done=true;success();script.onload=script.onreadystatechange=null;head.removeChild(script);}};head.appendChild(script);}%20getScript('http://code.jquery.com/jquery-latest.min.js',function(){if(typeof%20jQuery=='undefined'){msg='Sorry,%20but%20jQuery%20wasn\'t%20able%20to%20load';}else{msg='This%20page%20is%20now%20jQuerified%20with%20v'+jQuery.fn.jquery;if(otherlib){msg+='%20and%20noConflict().%20Use%20$jq(),%20not%20$().';}}%20return%20showMsg();});function%20showMsg(){el.innerHTML=msg;b.appendChild(el);window.setTimeout(function(){if(typeof%20jQuery=='undefined'){b.removeChild(el);}else{jQuery(el).fadeOut('slow',function(){jQuery(this).remove();});if(otherlib){$jq=jQuery.noConflict();}}},2500);}})();
 
 const categories = {
-    
+
     'accessories': {
         path: '/accessories',
         childs: {
@@ -191,17 +191,17 @@ const categories = {
             /*'sunglasses': {
                 path: '/accessories/sunglasses',
                 childs: {
-                    'oakley': '/accessories/sunglasses/oakley',
-                    'ray-ban': '/accessories/sunglasses/ray-ban',
-                    'shwood': '/accessories/sunglasses/shwood',
-                    'super': '/accessories/sunglasses/super'
+                    'oakley': true,
+                    'ray-ban': true,
+                    'shwood': true,
+                    'super': true
                 }
             }*/
         }
     },
     /*'air-jordans': {
         childs: {
-            '6-rings': '/air-jordans/6-rings',
+            '6-rings': true,
             'air-jordan-1': true,
             'air-jordan-2': true,
             'air-jordan-3': true,
@@ -472,7 +472,7 @@ function getCategoryId(link) {
             let id = $('.breadcrumbs ul li').last().attr('class').replace('category','').toInteger();
             return resolve(id);
         });
-    }); 
+    });
 }
 
 async function findAllProducts(category) {
@@ -528,7 +528,7 @@ async function findSaveAllProducts(categoryUrl, savedCategory) {
     let merged = [].concat.apply([], products);
     let productsDetails = await getDetails(merged);
     let saveAll = await saveAllProducts(productsDetails, savedCategory.id);
-    
+
     return saveAll;
 }
 
@@ -733,7 +733,7 @@ function build(categories, parent) {
                             console.log('error: findSaveAllProducts', error)
                             return callback(error);
                         });
-                    }  
+                    }
                 }).catch(error => {
                     console.log('moltin error: ', error)
                     return callback(null);
@@ -772,7 +772,7 @@ curl -X POST https://api.molt.in/v1/products \
 
 /*
 makeUrls(pathnames).then(result => {
-    
+
     return findAllProducts(result[7]).then(products => {
         console.log('prodcuts: ', products.length);
         return getDetails(products).then(details => {

@@ -15,7 +15,7 @@ import {
 import {
   nodeField,
   nodeInterface,
-} from './interfaces';
+} from '../interfaces';
 
 import Moltin from '../../services/moltin';
 
@@ -24,6 +24,14 @@ const client = new Moltin({
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
 });
 
+/*
+{
+  productSearch(category: "1275721208867848276") {
+    title
+    price
+  }
+}
+*/
 export default new GraphQLObjectType({
   name: 'Product',
   description: 'Products are the building blocks of any eCommerce system',
