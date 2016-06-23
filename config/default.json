@@ -1,0 +1,21 @@
+{
+  "server": {
+    "name": "Notification API",
+    "protocol": "http",
+    "hostname": "localhost",
+    "port": 5000
+  },
+  "db": {
+    "mongo": {
+      "host": "localhost",
+      "port": 27017,
+      "name": "invitation"
+    },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "name": "invitation"
+    }
+  },
+  "cors": true
+}

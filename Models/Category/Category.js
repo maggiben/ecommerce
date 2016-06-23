@@ -13,6 +13,9 @@ import {
 } from 'graphql';
 
 import {
+  connectionArgs,
+  connectionDefinitions,
+  connectionFromArray,
   fromGlobalId,
   globalIdField,
   nodeDefinitions,
@@ -25,10 +28,19 @@ import {
 
 import ProductType from '../Product/Product';
 import MoltinUtil from '../../services/moltin';
+
 const client = new MoltinUtil({
   publicId: 'Si025LTIJVLnzRv2vZzAU6Vgy5RBim8pdspJQegtN8',
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
 });
+
+var {connectionType: productConnection} = connectionDefinitions({name: 'Product', nodeType: ProductType});
+
+function connectionFromPromisedArray(dataPromise, args, options) {
+  return dataPromise.then(function (data) {
+    return connectionFromArray(data, args, options);
+  });
+}
 
 const Pagination = new GraphQLObjectType({
   name: 'Pagination',
@@ -120,6 +132,19 @@ export const CategoryType = new GraphQLObjectType({
       }
     },
     products: {
+      type: productConnection,
+      args: connectionArgs,
+      description: 'Products that belong to this category',
+      resolve: (obj, args, {loaders}) => {
+        console.log(args);
+        let products = loaders.product.search({
+          category: obj.id
+        });
+        //console.log(JSON.stringify(products, null, 2));
+        return connectionFromPromisedArray(products, args);
+      }
+    },
+    /*products: {
       type: new GraphQLList(ProductType),
       description: 'Products that belong to this category',
       resolve: (obj, args, {loaders}) => {
@@ -127,13 +152,30 @@ export const CategoryType = new GraphQLObjectType({
           category: obj.id
         });
       }
-    },
+    },*/
     pagination: {
       type: Pagination,
       description: 'Pagination object'
     }
   }),
   interfaces: [nodeInterface],
+});
+
+//curl -X GET https://api.molt.in/v1/categories/tree -H "Authorization: Bearer b43ecfc57deecf930aa7b3df10f90d859ead9f4d"
+
+export const CategoryTreeType = new GraphQLObjectType({
+  name: 'CategoryTree',
+  description: 'Categories tree hierarchy',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    tree: {
+      type: new GraphQLList(CategoryType)
+    }
+  }),
+  interfaces: [nodeInterface]
 });
 
 /*

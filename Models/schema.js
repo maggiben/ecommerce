@@ -11,10 +11,11 @@ import {
   GraphQLFloat
 } from 'graphql';
 
-import ProductType from '../Models/Product/Product';
+import Product from '../Models/Product/Product';
 
 import {
 	CategoryType,
+  CategoryTreeType,
 	CategoryMutationAdd,
 	CategoryMutationDelete
 } from '../Models/Category/Category';
@@ -23,6 +24,8 @@ import {
   nodeField,
   nodeInterface,
 } from './interfaces';
+
+import { globalIdField } from 'graphql-relay';
 
 const Mutations = new GraphQLObjectType({
   name: 'Mutations',
@@ -38,12 +41,12 @@ const QueryType = new GraphQLObjectType({
   description: 'The root of all... queries',
   fields: () => ({
     allProducts: {
-      type: new GraphQLList(ProductType),
+      type: new GraphQLList(Product),
       description: 'Retrieve a List of All Products',
       resolve: (root, args, {loaders}) => loaders.product.loadAll()
     },
     product: {
-      type: ProductType,
+      type: Product,
       description: 'Retrieve a Single Product by ID',
       args: {
         id: {
@@ -53,7 +56,7 @@ const QueryType = new GraphQLObjectType({
       resolve: (root, args, {loaders}) => loaders.product.load(args.id)
     },
     productSearch: {
-      type: new GraphQLList(ProductType),
+      type: new GraphQLList(Product),
       description: 'Returns a range of products based on the various provided search criteria',
       args: {
         id: {
@@ -68,6 +71,17 @@ const QueryType = new GraphQLObjectType({
         }
       },
       resolve: (root, args, {loaders}) => loaders.product.search(args)
+    },
+    allXX: {
+      type: CategoryTreeType,
+      resolve: (root, args, {loaders}) => {
+        return loaders.category.loadAll().then(tree => {
+          return {
+            id: 'tree',
+            tree: tree
+          }
+        })
+      }
     },
     allCategory: {
       type: new GraphQLList(CategoryType),
