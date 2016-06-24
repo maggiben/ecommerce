@@ -15,7 +15,7 @@ app.use(cors());
 //app.use(express.static(path.join(__dirname, './public')));
 
 app.get('/', function (req, res, next) {
-  res.send('hello world');
+  res.send('GQL endpoint is => /graphql');
 });
 
 app.use('/graphql', graphqlHTTP(request => {

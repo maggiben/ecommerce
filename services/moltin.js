@@ -17,7 +17,14 @@ export default class Moltin {
         'grant_type': 'client_credentials'
       }
     };
-    this.AUTH_URL = `${this.options.protocol}://${this.options.base}/oauth/access_token`;
+
+    let authUri = {
+      protocol: this.options.protocol,
+      host: this.options.base,
+      pathname: '/oauth/access_token'
+    }
+
+    this.AUTH_URL = url.format(authUri);
     this.authData = false;  // tokens from server
   }
 
@@ -42,7 +49,8 @@ export default class Moltin {
     };
 
     let links = Object.keys(endpoints).reduce( (acc, k) => {
-      let endpoint = template.parse(endpoints[k]).expand(data).replace(/\/$/, '');
+      // Make template and remove any trailing slashes
+      let endpoint = template.parse(endpoints[k]).expand(data).replace(/\/+$/, '');
       acc[k] = `${url.format(api)}/${endpoint}` //`{this.options.base}/${this.options.version}/${endpoints[k])}`;
       return acc;
     }, {});
@@ -51,7 +59,8 @@ export default class Moltin {
   }
 
   authenticate() {
-    if(this.authData) {
+    let expires = parseInt(this.authData.expires, 10) * 1000;
+    if(this.authData && Date.now() < parseInt(expires, 10)) {
       return Promise.resolve(this.authData);
     }
     console.log(this.AUTH_URL)
@@ -61,16 +70,24 @@ export default class Moltin {
         json: true
       })
       .then(response => {
-        console.log(response.body)
+        let expires = parseInt(response.body.expires, 10) * 1000 - Date.now();
+        console.log(`${response.body.access_token} expires in: ${this.msToTime(expires)}` );
         this.authData = response.body;
         return response.body;
       });
   }
 
-  authHeader() {
-    return {
-      Authorization: 'Bearer ' + this.authData.access_token
-    };
+  msToTime(duration) {
+    var milliseconds = parseInt((duration%1000)/100)
+      , seconds = parseInt((duration/1000)%60)
+      , minutes = parseInt((duration/(1000*60))%60)
+      , hours = parseInt((duration/(1000*60*60))%24);
+
+    hours = (hours < 10) ? '0' + hours : hours;
+    minutes = (minutes < 10) ? '0' + minutes : minutes;
+    seconds = (seconds < 10) ? '0' + seconds : seconds;
+
+    return hours + ':' + minutes + ':' + seconds + '.' + milliseconds;
   }
 
   createImage(data = {
@@ -105,19 +122,37 @@ export default class Moltin {
     return got(uri, { encoding: null }).then(response => response.body);
   }
 
-  request(url, options = {}) {
-    return this.authenticate()
-    .then(auth => {
-      options = Object.assign(options, {
-        headers: this.authHeader(),
-        json: true
-      });
-      //console.log(url);
-      //console.log(JSON.stringify(options, null,2));
-      return got(url, options).then(response => {
-        return response.body
-      });
+  timeoutX() {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        return resolve(1500);
+      }, 1500)
+    })
+  }
+
+  async authHeader() {
+    let makeHeader = token => {
+      return {
+        Authorization: 'Bearer ' + token
+      };
+    }
+
+    let expires = this.authData ? Date.now() < parseInt(this.authData.expires, 10) * 1000 : false;
+    if(expires) {
+      return Promise.resolve(makeHeader(this.authData.access_token));
+    }
+
+    let authenticate = await this.authenticate(); // find by id
+    return makeHeader(authenticate.access_token);
+
+  };
+
+  async request(url, options = {}) {
+    options = Object.assign(options, {
+      headers: await this.authHeader(),
+      json: true
     });
+    return await got(url, options).then(response => response.body);
   }
 
   createProduct(product, images = new Array()) {
