@@ -72,7 +72,7 @@ const QueryType = new GraphQLObjectType({
       },
       resolve: (root, args, {loaders}) => loaders.product.search(args)
     },
-    allXX: {
+    allCategory: {
       type: CategoryTreeType,
       resolve: (root, args, {loaders}) => {
         return loaders.category.loadAll().then(tree => {
@@ -82,11 +82,6 @@ const QueryType = new GraphQLObjectType({
           }
         })
       }
-    },
-    allCategory: {
-      type: new GraphQLList(CategoryType),
-      description: 'Retrieve a List of All Categories',
-      resolve: (root, args, {loaders}) => loaders.category.loadAll()
     },
     category: {
       type: CategoryType,

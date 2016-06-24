@@ -4,6 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
+  GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -219,18 +220,18 @@ export const CategoryMutation = new GraphQLObjectType({
 });
 
 */
-
-/*
-mutation addCategory {
-  addCategory(title: "Hola" slug: "hola" description: "pepe" status: 1) {
-    id
+const CategoryStatus = new GraphQLEnumType({
+  name: 'CategoryStatus',
+  values: {
+    DRAFT: { value: 0 },
+    LIVE: { value: 1 }
   }
-}
-*/
-export const CategoryMutationAdd = {
-  type: CategoryType,
-  description: 'Add a Category',
-  args: {
+});
+
+const CategoryInput = new GraphQLInputObjectType({
+  name: 'CategoryInput',
+  description: 'New Category Input Parameters',
+  fields: {
     title: {
       type: new GraphQLNonNull(GraphQLString),
       description: 'The Title of the category, must be unique'
@@ -244,17 +245,34 @@ export const CategoryMutationAdd = {
       description: 'The parent category that contains this category'
     },
     status: {
-      type: new GraphQLNonNull(GraphQLInt),
+      type: new GraphQLNonNull(CategoryStatus),
       description: 'Is the product Live or a Draft'
     },
     description: {
       type: new GraphQLNonNull(GraphQLString),
       description: 'The Description of the product'
     }
+  }
+})
+
+/*
+mutation {
+  addCategory(category: {title: "Hola", slug: "hola", description: "pepe", status: DRAFT}) {
+    id
+  }
+}
+*/
+export const CategoryMutationAdd = {
+  type: CategoryType,
+  description: 'Add a Category',
+  args: {
+    category: {
+      type: CategoryInput,
+      description: 'Category Input Parameters'
+    }
   },
-  resolve: (root, args) => {
-    console.log('data', args.title)
-    return client.createCategory(args);
+  resolve: (root, {category}) => {
+    return client.createCategory(category);
   }
 };
 

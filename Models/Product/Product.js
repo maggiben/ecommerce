@@ -17,12 +17,95 @@ import {
   nodeInterface,
 } from '../interfaces';
 
+import {
+  fromGlobalId,
+  toGlobalId,
+  globalIdField
+} from 'graphql-relay';
+
+import uuid from 'node-uuid';
+
 import Moltin from '../../services/moltin';
 
 const client = new Moltin({
   publicId: 'Si025LTIJVLnzRv2vZzAU6Vgy5RBim8pdspJQegtN8',
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
 });
+
+const ImageUrl = new GraphQLObjectType({
+  name: 'ImageUrl',
+  description: 'Image URI',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object',
+      resolve: obj => {
+        return toGlobalId('image', uuid.v1());
+      }
+    },
+    http: {
+      type: GraphQLString,
+      description: 'Image HTTP resource'
+    },
+    https: {
+      type: GraphQLString,
+      description: 'Image HTTPS resource'
+    }
+  }),
+  interfaces: [nodeInterface]
+});
+
+const ImageDetails = new GraphQLObjectType({
+  name: 'ImageDetails',
+  description: 'Image properties',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object',
+      resolve: obj => {
+        return toGlobalId('image', uuid.v1());
+      }
+    },
+    size: {
+      type: GraphQLInt,
+      description: 'Image size'
+    },
+    width: {
+      type: GraphQLInt,
+      description: 'Image width'
+    },
+    height: {
+      type: GraphQLInt,
+      description: 'Images height'
+    }
+  }),
+  interfaces: [nodeInterface]
+});
+
+const Image = new GraphQLObjectType({
+  name: 'Image',
+  description: 'Product images',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    name: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    },
+    url: {
+      type: ImageUrl,
+      description: 'Product Images'
+    },
+    details: {
+      type: ImageDetails,
+      description: 'Product Images'
+    }
+  }),
+  interfaces: [nodeInterface]
+});
+
 
 /*
 {
@@ -63,10 +146,14 @@ export default new GraphQLObjectType({
       type: GraphQLString,
       description: 'The SKU of the product, must be unique'
     },
+    images: {
+      type: new GraphQLList(Image),
+      description: 'Returns an array of assigned images for this product'
+    },
     stockLevel: {
       type: GraphQLInt,
       description: 'The Stock Level of the product',
-      resolve: obj => obj.stock_level,
+      resolve: obj => obj.stock_level
     }
   }),
   interfaces: [nodeInterface],

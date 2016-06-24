@@ -56,13 +56,19 @@ function getProducts() {
 
 function getProduct(id) {
   console.log('getProduct')
-  return client.request(`${client.endpoint('PRODUCTS')}/${id}`).then(products => products.result);
+  return client.request(`${client.endpoint('PRODUCTS')}/${id}`).then(products => {
+    //console.log(JSON.stringify(products, null, 2))
+    return products.result
+  });
 }
 
 function searchProduct(params) {
   console.log('searchProduct', querystring.stringify(params))
   let url = `${client.endpoint('SEARCH_PRODUCTS')}?${querystring.stringify(params)}`;
-  return client.request(url).then(products => products.result);
+  return client.request(url).then(products => {
+    //console.log(JSON.stringify(products, null, 2))
+    return products.result
+  });
 }
 
 function getCategories() {
