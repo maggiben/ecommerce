@@ -24,6 +24,7 @@ export default class Moltin {
     let endpoints = {
       'PRODUCTS': 'products',
       'SEARCH_PRODUCTS': 'products/search',
+      'VARIATIONS': 'products/{id}/variations',
       'IMAGES': 'files',
       'CATEGORIES': 'categories',
       'SEARCH_CATEGORIES': 'categories/search',

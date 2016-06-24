@@ -116,7 +116,51 @@ const Image = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-
+const ModifierVariation = new GraphQLObjectType({
+  name: 'ModifierVariation',
+  description: 'Product Modifier',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    title: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    },
+    mod_price: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    }
+  }),
+  interfaces: [nodeInterface]
+})
+/*
+curl -X GET https://api.molt.in/v1/products/1279009237539750439/variations -H "Authorization: Bearer d419b8887cf6857d5c445896ccb310e8341bd1b7"
+*/
+const ProductModifier = new GraphQLObjectType({
+  name: 'ProductModifier',
+  description: 'Product Modifier',
+  fields: () => ({
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    title: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    },
+    type: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    },
+    variations: {
+      type: new GraphQLList(ModifierVariation),
+      description: 'Child-product variations for a product'
+    }
+  }),
+  interfaces: [nodeInterface]
+});
 /*
 {
   productSearch(category: "1275721208867848276") {
@@ -168,6 +212,20 @@ export const ProductType = new GraphQLObjectType({
     status: {
       type: ProductStatus,
       description: 'Is the product Live or a Draft'
+    },
+    modifiers: {
+      type: new GraphQLList(ProductModifier),
+      description: 'Product modifiers',
+      resolve: (obj, args, {loaders}) => {
+        return loaders.product.modifiers(obj.id);
+      }
+    },
+    variations: {
+      type: new GraphQLList(ProductType),
+      description: 'Child-product variations for a product',
+      resolve: (obj, args, {loaders}) => {
+        return loaders.product.variations(obj.id);
+      }
     }
   }),
   interfaces: [nodeInterface],
@@ -199,7 +257,7 @@ const ProductCreateInput = new GraphQLInputObjectType({
     },
     status: {
       type: new GraphQLNonNull(ProductStatus),
-      description: 'The Stock Level of the product'
+      description: 'Is the product Live or a Draft'
     },
     stock_level: {
       type: new GraphQLNonNull(GraphQLInt),
@@ -207,21 +265,32 @@ const ProductCreateInput = new GraphQLInputObjectType({
     },
     stock_status: {
       type: new GraphQLNonNull(GraphQLInt),
-      description: 'The Stock Level of the product'
+      description: 'The Stock Status of the product'
     },
     catalog_only: {
       type: new GraphQLNonNull(GraphQLInt),
-      description: 'The Stock Level of the product'
+      description: 'Indicates whether this product is only listed in the catalog and not for sale'
+    },
+    category: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'The Category of the product'
     }
   }
 });
 
+/*
+mutation {
+  addProduct(product: {title: "new product", price: 110.50, description: "A brand new Product", slug: "a-brand-new-product", sku: "DEADBEEF", status: LIVE, category: "0", stock_level: "1", stock_status: 1, requires_shipping: 1, catalog_only: 0, tax_band: "1275562953474572346"}) {
+    id
+  }
+}
+*/
 export const ProductMutationAdd = {
   type: ProductType,
   name: 'ProductMutationAdd',
   description: 'Add a Product',
   args: {
-    category: {
+    product: {
       type: ProductCreateInput,
       description: 'Product creation parameters'
     }

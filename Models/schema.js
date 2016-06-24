@@ -11,13 +11,17 @@ import {
   GraphQLFloat
 } from 'graphql';
 
-import Product from '../Models/Product/Product';
+import {
+  ProductType,
+  ProductMutationAdd
+} from '../Models/Product/Product';
 
 import {
 	CategoryType,
   CategoryTreeType,
 	CategoryMutationAdd,
-	CategoryMutationDelete
+	CategoryMutationDelete,
+  CategoryMutationUpdate
 } from '../Models/Category/Category';
 
 import {
@@ -31,8 +35,10 @@ const Mutations = new GraphQLObjectType({
   name: 'Mutations',
   description: 'Functions to set stuff',
   fields: () => ({
+    addProduct: ProductMutationAdd,
     addCategory: CategoryMutationAdd,
-    deleteCategory: CategoryMutationDelete
+    deleteCategory: CategoryMutationDelete,
+    updateCategory: CategoryMutationUpdate
   })
 });
 
@@ -41,12 +47,12 @@ const QueryType = new GraphQLObjectType({
   description: 'The root of all... queries',
   fields: () => ({
     allProducts: {
-      type: new GraphQLList(Product),
+      type: new GraphQLList(ProductType),
       description: 'Retrieve a List of All Products',
       resolve: (root, args, {loaders}) => loaders.product.loadAll()
     },
     product: {
-      type: Product,
+      type: ProductType,
       description: 'Retrieve a Single Product by ID',
       args: {
         id: {
@@ -56,7 +62,7 @@ const QueryType = new GraphQLObjectType({
       resolve: (root, args, {loaders}) => loaders.product.load(args.id)
     },
     productSearch: {
-      type: new GraphQLList(Product),
+      type: new GraphQLList(ProductType),
       description: 'Returns a range of products based on the various provided search criteria',
       args: {
         id: {
