@@ -13,15 +13,17 @@ import {
 
 import {
   ProductType,
-  ProductMutationAdd
+  ProductMutationAdd,
+  ProductMutationUpdate,
+  ProductMutationDelete
 } from '../Models/Product/Product';
 
 import {
 	CategoryType,
   CategoryTreeType,
 	CategoryMutationAdd,
-	CategoryMutationDelete,
-  CategoryMutationUpdate
+	CategoryMutationUpdate,
+  CategoryMutationDelete
 } from '../Models/Category/Category';
 
 import {
@@ -36,9 +38,11 @@ const Mutations = new GraphQLObjectType({
   description: 'Functions to set stuff',
   fields: () => ({
     addProduct: ProductMutationAdd,
+    updateProduct: ProductMutationUpdate,
+    deleteProduct: ProductMutationDelete,
     addCategory: CategoryMutationAdd,
-    deleteCategory: CategoryMutationDelete,
-    updateCategory: CategoryMutationUpdate
+    updateCategory: CategoryMutationUpdate,
+    deleteCategory: CategoryMutationDelete
   })
 });
 

@@ -15,20 +15,6 @@ module.exports = function () {
   };
 };
 
-/*
-const cacheMap = new Map();
-const productsLoader = new DataLoader(keys => Promise.all(keys.map(getProducts)), {cacheMap});
-const productsSearch = new DataLoader(keys => Promise.all(keys.map(searchProduct)), {cacheMap});
-const productLoader = new DataLoader(keys => Promise.all(keys.map(getProduct)), {cacheMap});
-productLoader.loadAll = productsLoader.load.bind(productsLoader, '__all__products__');
-productLoader.search = productsSearch.load.bind(productsSearch);
-
-
-const categoriesLoader = new DataLoader(keys => Promise.all(keys.map(getCategories)), {cacheMap});
-const categoryLoader = new DataLoader(keys => Promise.all(keys.map(getCategory)), {cacheMap});
-categoryLoader.loadAll = categoriesLoader.load.bind(categoriesLoader, '__all__categories__');
-*/
-
 function Product() {
   const cacheMap = new Map();
   const variationsCacheMap = new Map();
@@ -63,7 +49,7 @@ function getProducts() {
 
 function getProductsVariations(id) {
   console.log('getProductsVariations');
-  return client.request(`${client.endpoint('PRODUCTS')}/${id}/variations`).then(variations => {
+  return client.request(client.endpoint('VARIATIONS', {id})).then(variations => {
     console.log(JSON.stringify(variations, null, 2))
     return variations.result;
   });
@@ -71,15 +57,15 @@ function getProductsVariations(id) {
 
 function getProductsModifiers(id) {
   console.log('getProductsModifiers');
-  return client.request(`${client.endpoint('PRODUCTS')}/${id}/modifiers`).then(modifiers => {
+  return client.request(client.endpoint('MODIFIERS', {id})).then(modifiers => {
     return modifiers.result;
   });
 }
 
 function getProduct(id) {
   console.log('getProduct')
-  return client.request(`${client.endpoint('PRODUCTS')}/${id}`).then(products => {
-    //console.log(JSON.stringify(products, null, 2))
+  return client.request(client.endpoint('PRODUCTS', {id})).then(products => {
+    //console.log(JSON.stringify(products, null, 2));
     return products.result;
   });
 }
@@ -100,7 +86,7 @@ function getCategories() {
 
 function getCategory(id) {
   console.log('getCategory')
-  return client.request(`${client.endpoint('CATEGORIES')}/${id}`).then(category => category.result);
+  return client.request(client.endpoint('CATEGORIES', {id})).then(category => category.result);
 }
 
 function searchCategory(params) {

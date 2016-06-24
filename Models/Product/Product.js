@@ -33,12 +33,89 @@ const client = new Moltin({
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
 });
 
+const GraphQLLong = new GraphQLScalarType({
+  name: 'BigInt',
+  description: '64-bit integral numbers',
+  // TODO: Number is only 52-bit
+  serialize: Number,
+  parseValue: Number,
+  parseLiteral: ast => {
+    if (ast.kind === graphql.Kind.INT) {
+      const num = parseInt(ast.value, 10);
+      return num;
+    }
+    return null;
+  }
+});
+
+const GraphQLDate = new GraphQLScalarType({
+  name: 'Date',
+  serialize (value) {
+    if (value === null)
+      return null;
+    if (!(value instanceof Date)) {
+      throw new Error('Field error: value is not an instance of Date')
+    }
+
+    return value.toJSON();
+  },
+  parseValue (value) {
+    const date = new Date(value);
+
+    return date;
+  },
+  parseLiteral (ast) {
+    if (ast.kind !== Kind.STRING) {
+      throw new GraphQLError('Query error: Can only parse strings to dates but got a: ' + ast.kind, [ast]);
+    }
+    let result = new Date(ast.value)
+    if (isNaN(result.getTime())) {
+      throw new GraphQLError('Query error: Invalid date', [ast]);
+    }
+    if (ast.value !== result.toJSON()) {
+      throw new GraphQLError('Query error: Invalid date format, only accepts: YYYY-MM-DDTHH:MM:SS.SSSZ', [ast]);
+    }
+    return result;
+  }
+});
+
 const ProductStatus = new GraphQLEnumType({
   name: 'ProductStatus',
   description: 'Choices available are DRAFT (0) and LIVE (1)',
   values: {
     DRAFT: { value: 0 },
     LIVE: { value: 1 }
+  }
+});
+
+const StockStatus = new GraphQLEnumType({
+  name: 'StockStatus',
+  description: 'The Stock Status of the product',
+  values: {
+    UNLIMITED: { value: 0 },
+    IN_STOCK: { value: 1 },
+    LOW_STOCK: { value: 2 },
+    OUT_OF_STOCK: { value: 3 },
+    MORE_STOCK_ORDERED: { value: 4 },
+    DISCONTINUED: { value: 5 }
+  }
+});
+
+const RequiresShipping = new GraphQLEnumType({
+  name: 'RequiresShipping',
+  description: 'Does the product require Shipping?',
+  values: {
+    NO: { value: 0 },
+    YES: { value: 1 }
+  }
+});
+
+const CatalogOnly = new GraphQLEnumType({
+  name: 'CatalogOnly',
+  description: 'Indicates whether this product is only listed in the catalog and not for sale',
+  values: {
+    NO: { value: 0 },
+    YES: { value: 1 }
   }
 });
 
@@ -128,9 +205,10 @@ const ModifierVariation = new GraphQLObjectType({
       type: GraphQLString,
       description: 'The Title of the product, must be unique'
     },
-    mod_price: {
+    modPrice: {
       type: GraphQLString,
-      description: 'The Title of the product, must be unique'
+      description: 'The Title of the product, must be unique',
+      resolve: ({mod_price}) => mod_price
     }
   }),
   interfaces: [nodeInterface]
@@ -156,11 +234,13 @@ const ProductModifier = new GraphQLObjectType({
     },
     variations: {
       type: new GraphQLList(ModifierVariation),
-      description: 'Child-product variations for a product'
+      description: 'Child-product variations for a product',
+      resolve: ({variations}) => variations ? Object.keys(variations).map(key => variations[key]) : new Array()
     }
   }),
   interfaces: [nodeInterface]
 });
+
 /*
 {
   productSearch(category: "1275721208867848276") {
@@ -184,6 +264,16 @@ export const ProductType = new GraphQLObjectType({
     description: {
       type: GraphQLString,
       description: 'The Description of the product'
+    },
+    dateCreated: {
+      type: GraphQLDate,
+      description: 'Creation date',
+      resolve: obj => new Date(obj.created_at)
+    },
+    dateUpdated: {
+      type: GraphQLDate,
+      description: 'Update date',
+      resolve: obj => new Date(obj.updated_at)
     },
     price: {
       type: GraphQLFloat,
@@ -217,15 +307,15 @@ export const ProductType = new GraphQLObjectType({
       type: new GraphQLList(ProductModifier),
       description: 'Product modifiers',
       resolve: (obj, args, {loaders}) => {
-        return loaders.product.modifiers(obj.id);
+        //return loaders.product.modifiers(obj.id);
+        let modifiers = Object.keys(obj.modifiers).map(key => obj.modifiers[key]);
+        return modifiers;
       }
     },
     variations: {
       type: new GraphQLList(ProductType),
       description: 'Child-product variations for a product',
-      resolve: (obj, args, {loaders}) => {
-        return loaders.product.variations(obj.id);
-      }
+      resolve: (obj, args, {loaders}) => loaders.product.variations(obj.id)
     }
   }),
   interfaces: [nodeInterface],
@@ -268,19 +358,90 @@ const ProductCreateInput = new GraphQLInputObjectType({
       description: 'The Stock Status of the product'
     },
     catalog_only: {
-      type: new GraphQLNonNull(GraphQLInt),
+      type: new GraphQLNonNull(CatalogOnly),
       description: 'Indicates whether this product is only listed in the catalog and not for sale'
     },
     category: {
-      type: new GraphQLNonNull(GraphQLInt),
+      type: new GraphQLNonNull(GraphQLString),
       description: 'The Category of the product'
+    },
+    stock_status: {
+      type: new GraphQLNonNull(StockStatus),
+      description: 'The Stock Status of the product'
+    },
+    requires_shipping: {
+      type: new GraphQLNonNull(RequiresShipping),
+      description: 'Does the product require Shipping?'
+    },
+    tax_band: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: 'The tax band for this product'
+    }
+  }
+});
+
+const ProductUpdateInput = new GraphQLInputObjectType({
+  name: 'ProductUpdateInput',
+  description: 'New Category Input Parameters',
+  fields: {
+    title: {
+      type: GraphQLString,
+      description: 'The Title of the product, must be unique'
+    },
+    description: {
+      type: GraphQLString,
+      description: 'The Description of the product'
+    },
+    price: {
+      type: GraphQLFloat,
+      description: 'The Price of the product'
+    },
+    slug: {
+      type: GraphQLString,
+      description: 'The Slug/URI of the product, must be unique'
+    },
+    sku: {
+      type: GraphQLString,
+      description: 'The SKU of the product, must be unique'
+    },
+    status: {
+      type: ProductStatus,
+      description: 'Is the product Live or a Draft'
+    },
+    stock_level: {
+      type: GraphQLInt,
+      description: 'The Stock Level of the product'
+    },
+    stock_status: {
+      type: GraphQLInt,
+      description: 'The Stock Status of the product'
+    },
+    catalog_only: {
+      type: CatalogOnly,
+      description: 'Indicates whether this product is only listed in the catalog and not for sale'
+    },
+    category: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: 'The Category of the product'
+    },
+    stock_status: {
+      type: StockStatus,
+      description: 'The Stock Status of the product'
+    },
+    requires_shipping: {
+      type: RequiresShipping,
+      description: 'Does the product require Shipping?'
+    },
+    tax_band: {
+      type: GraphQLString,
+      description: 'The tax band for this product'
     }
   }
 });
 
 /*
 mutation {
-  addProduct(product: {title: "new product", price: 110.50, description: "A brand new Product", slug: "a-brand-new-product", sku: "DEADBEEF", status: LIVE, category: "0", stock_level: "1", stock_status: 1, requires_shipping: 1, catalog_only: 0, tax_band: "1275562953474572346"}) {
+  addProduct(product: {title: "new product", price: 110.50, description: "A brand new Product", slug: "a-brand-new-product", sku: "DEADBEEF", status: LIVE, category: "0", stock_level: 10, stock_status: IN_STOCK, requires_shipping: NO, catalog_only: NO, tax_band: "1275562953474572346"} images: ["https://pixabay.com/static/uploads/photo/2013/07/12/13/21/sports-car-146873_960_720.png"]) {
     id
   }
 }
@@ -293,10 +454,86 @@ export const ProductMutationAdd = {
     product: {
       type: ProductCreateInput,
       description: 'Product creation parameters'
+    },
+    images: {
+      type: new GraphQLList(GraphQLString),
+      description: 'Image urls'
     }
   },
-  resolve: (root, {product}) => {
-    console.log('data', args.product)
-    return client.createProduct(product);
+  resolve: (root, {product, images}) => {
+    console.log('data', product)
+    return client.createProduct(product, images).then(product => {
+      return product.product;
+    });
   }
 };
+
+/*
+mutation {
+  updateProduct(id: "1279618214090769013" product: {title: "caca", price: 2229.5, category: "1279381513485419111"}) {
+    id
+  }
+}
+*/
+export const ProductMutationUpdate = {
+  type: ProductType,
+  name: 'ProductMutationUpdate',
+  description: 'Update a Product',
+  args: {
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    product: {
+      type: ProductUpdateInput,
+      description: 'Product Update Parameters'
+    }
+  },
+  resolve: (root, {id, product}) => {
+    return client.updateProduct(id, product);
+  }
+};
+
+export const ProductMutationDelete = {
+  type: ProductType,
+  name: 'ProductMutationDelete',
+  description: 'Delete a Single Product',
+  args: {
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    }
+  },
+  resolve: (root, {id}) => {
+    return client.deleteProduct(id).then(result => {
+      return {
+        id: id
+      };
+    });
+  }
+};
+/*
+{
+  product(id: "1279009237539750439") {
+    id
+    title
+    modifiers {
+      id
+      title
+      variations {
+        id
+        title
+        modPrice
+      }
+    }
+    variations {
+      id
+      title
+      modifiers {
+        id
+      }
+    }
+  }
+}
+
+*/

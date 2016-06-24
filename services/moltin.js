@@ -2,6 +2,7 @@ import got from 'got';
 import Form from 'form-data';
 import url from 'url';
 import querystring from 'querystring';
+import template from 'url-template';
 
 export default class Moltin {
 
@@ -20,13 +21,14 @@ export default class Moltin {
     this.authData = false;  // tokens from server
   }
 
-  endpoint(endpoint) {
+  endpoint(endpoint, data = {}) {
     let endpoints = {
-      'PRODUCTS': 'products',
+      'PRODUCTS': 'products/{id}',
       'SEARCH_PRODUCTS': 'products/search',
+      'MODIFIERS': 'products/{id}/modifiers',
       'VARIATIONS': 'products/{id}/variations',
       'IMAGES': 'files',
-      'CATEGORIES': 'categories',
+      'CATEGORIES': 'categories/{id}',
       'SEARCH_CATEGORIES': 'categories/search',
       'TREE': 'categories/tree',
       'TAXES': 'taxes',
@@ -40,7 +42,8 @@ export default class Moltin {
     };
 
     let links = Object.keys(endpoints).reduce( (acc, k) => {
-      acc[k] = `${url.format(api)}/${endpoints[k]}` //`{this.options.base}/${this.options.version}/${endpoints[k])}`;
+      let endpoint = template.parse(endpoints[k]).expand(data).replace(/\/$/, '');
+      acc[k] = `${url.format(api)}/${endpoint}` //`{this.options.base}/${this.options.version}/${endpoints[k])}`;
       return acc;
     }, {});
 
@@ -128,13 +131,30 @@ export default class Moltin {
           return this.createImage({
             name: prod.slug+'-'+i,
             assign_to: prod.id
-          }, img)})
-        )
-        .then(imgs => { return {
+          }, img)
+        })
+      )
+      .then(imgs => {
+        return {
           product: prod,
           images: imgs
         };
       });
+    });
+  }
+
+  updateProduct(id, product) {
+    return this.request(this.endpoint('PRODUCTS', {id}), {
+      method: 'PUT',
+      body: product
+    })
+    .then(product => product.result);
+  }
+
+  deleteProduct(id) {
+    return this.request(this.endpoint('PRODUCTS', {id}), {
+      method: 'DELETE',
+      body: null
     });
   }
 
@@ -147,7 +167,7 @@ export default class Moltin {
   }
 
   updateCategory(id, category) {
-    return this.request(`${this.endpoint('CATEGORIES')}/${id}`, {
+    return this.request(this.endpoint('CATEGORIES', {id}), {
       method: 'PUT',
       body: category
     })
@@ -155,7 +175,7 @@ export default class Moltin {
   }
 
   deleteCategory(id) {
-    return this.request(`${this.endpoint('CATEGORIES')}/${id}`, {
+    return this.request(this.endpoint('CATEGORIES', {id}), {
       method: 'DELETE',
       body: null
     });

@@ -273,7 +273,7 @@ const CategoryUpdateInput = new GraphQLInputObjectType({
 export const CategoryMutationUpdate = {
   type: CategoryType,
   name: 'CategoryMutationUpdate',
-  description: 'Add a Category',
+  description: 'Update a Category',
   args: {
     id: {
       type: new GraphQLNonNull(GraphQLID),
