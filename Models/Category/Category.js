@@ -27,7 +27,10 @@ import {
   nodeInterface,
 } from '../interfaces';
 
-import ProductType from '../Product/Product';
+import {
+  ProductType
+} from '../Product/Product';
+
 import MoltinUtil from '../../services/moltin';
 
 const client = new MoltinUtil({
@@ -93,10 +96,6 @@ export const CategoryType = new GraphQLObjectType({
     order: {
       type: GraphQLInt,
       description: 'The order in which this category appears'
-    },
-    parent: {
-      type: GraphQLInt,
-      description: 'The Stock Level of the product'
     },
     status: {
       type: GraphQLBoolean,
@@ -179,57 +178,17 @@ export const CategoryTreeType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-/*
-export const CategoryMutation = new GraphQLObjectType({
-  name: 'Mutations',
-  description: 'Functions to set Categories',
-  fields: () => ({
-    addCategory: {
-      type: CategoryType,
-      description: 'Add a Category',
-      args: {
-        title: {
-          type: new GraphQLNonNull(GraphQLString),
-          description: 'The Title of the category, must be unique'
-        },
-        slug: {
-          type: GraphQLString,
-          description: 'The Slug/URI of the category, must be unique'
-        },
-        parent: {
-          type: GraphQLInt,
-          description: 'The Stock Level of the product',
-          resolve: obj => obj.stock_level,
-        },
-        status: {
-          type: GraphQLBoolean,
-          description: 'The Slug/URI of the category, must be unique'
-        },
-        description: {
-          type: GraphQLString,
-          description: 'The Description of the product'
-        }
-      },
-      resolve: (root, args, {title}) => {
-        return {
-          id: '1abc'
-        };
-      }
-    }
-  })
-});
-
-*/
 const CategoryStatus = new GraphQLEnumType({
   name: 'CategoryStatus',
+  description: 'Choices available are DRAFT (0) and LIVE (1)',
   values: {
     DRAFT: { value: 0 },
     LIVE: { value: 1 }
   }
 });
 
-const CategoryInput = new GraphQLInputObjectType({
-  name: 'CategoryInput',
+const CategoryCreateInput = new GraphQLInputObjectType({
+  name: 'CategoryCreateInput',
   description: 'New Category Input Parameters',
   fields: {
     title: {
@@ -241,19 +200,19 @@ const CategoryInput = new GraphQLInputObjectType({
       description: 'The Slug/URI of the category, must be unique'
     },
     parent: {
-      type: GraphQLInt,
+      type: GraphQLString,
       description: 'The parent category that contains this category'
     },
     status: {
       type: new GraphQLNonNull(CategoryStatus),
-      description: 'Is the product Live or a Draft'
+      description: 'Is the category Live or a Draft'
     },
     description: {
       type: new GraphQLNonNull(GraphQLString),
       description: 'The Description of the product'
     }
   }
-})
+});
 
 /*
 mutation {
@@ -264,15 +223,69 @@ mutation {
 */
 export const CategoryMutationAdd = {
   type: CategoryType,
+  name: 'CategoryMutationAdd',
   description: 'Add a Category',
   args: {
     category: {
-      type: CategoryInput,
-      description: 'Category Input Parameters'
+      type: CategoryCreateInput,
+      description: 'Category creation parameters'
     }
   },
   resolve: (root, {category}) => {
     return client.createCategory(category);
+  }
+};
+
+/*
+mutation {
+  updateCategory(id: "1279381513485419111" category: {slug: "woot", title: "pee", description: "caca", status: LIVE, parent: "0"}) {
+    id
+  }
+}
+*/
+const CategoryUpdateInput = new GraphQLInputObjectType({
+  name: 'CategoryUpdateInput',
+  description: 'New Category Input Parameters',
+  fields: {
+    title: {
+      type: GraphQLString,
+      description: 'The Title of the category, must be unique'
+    },
+    slug: {
+      type: GraphQLString,
+      description: 'The Slug/URI of the category, must be unique'
+    },
+    parent: {
+      type: GraphQLString,
+      description: 'The parent category that contains this category'
+    },
+    status: {
+      type: CategoryStatus,
+      description: 'Is the category Live or a Draft'
+    },
+    description: {
+      type: GraphQLString,
+      description: 'The Description of the product'
+    }
+  }
+});
+
+export const CategoryMutationUpdate = {
+  type: CategoryType,
+  name: 'CategoryMutationUpdate',
+  description: 'Add a Category',
+  args: {
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      description: 'The global unique ID of an object'
+    },
+    category: {
+      type: CategoryUpdateInput,
+      description: 'Category Update Parameters'
+    }
+  },
+  resolve: (root, {id, category}) => {
+    return client.updateCategory(id, category);
   }
 };
 
@@ -283,9 +296,9 @@ mutation deleteCategory {
   }
 }
 */
-
 export const CategoryMutationDelete = {
   type: CategoryType,
+  name: 'CategoryMutationDelete',
   description: 'Delete a Single Category',
   args: {
     id: {
@@ -299,13 +312,5 @@ export const CategoryMutationDelete = {
         id: id
       };
     });
-    return {
-      id: '1abc',
-      title: title,
-      slug: slug,
-      parent: parent,
-      status: status,
-      description: description
-    };
   }
 };

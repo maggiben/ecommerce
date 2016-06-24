@@ -4,6 +4,7 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
+  GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -30,6 +31,15 @@ import Moltin from '../../services/moltin';
 const client = new Moltin({
   publicId: 'Si025LTIJVLnzRv2vZzAU6Vgy5RBim8pdspJQegtN8',
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
+});
+
+const ProductStatus = new GraphQLEnumType({
+  name: 'ProductStatus',
+  description: 'Choices available are DRAFT (0) and LIVE (1)',
+  values: {
+    DRAFT: { value: 0 },
+    LIVE: { value: 1 }
+  }
 });
 
 const ImageUrl = new GraphQLObjectType({
@@ -115,7 +125,7 @@ const Image = new GraphQLObjectType({
   }
 }
 */
-export default new GraphQLObjectType({
+export const ProductType = new GraphQLObjectType({
   name: 'Product',
   description: 'Products are the building blocks of any eCommerce system',
   fields: () => ({
@@ -154,16 +164,19 @@ export default new GraphQLObjectType({
       type: GraphQLInt,
       description: 'The Stock Level of the product',
       resolve: obj => obj.stock_level
+    },
+    status: {
+      type: ProductStatus,
+      description: 'Is the product Live or a Draft'
     }
   }),
   interfaces: [nodeInterface],
 });
 
-/*
-const ProductMutationAdd = {
-  type: ProductType,
-  description: 'Add a Product',
-  args: {
+const ProductCreateInput = new GraphQLInputObjectType({
+  name: 'ProductCreateInput',
+  description: 'New Category Input Parameters',
+  fields: {
     title: {
       type: new GraphQLNonNull(GraphQLString),
       description: 'The Title of the product, must be unique'
@@ -185,7 +198,7 @@ const ProductMutationAdd = {
       description: 'The SKU of the product, must be unique'
     },
     status: {
-      type: new GraphQLNonNull(GraphQLInt),
+      type: new GraphQLNonNull(ProductStatus),
       description: 'The Stock Level of the product'
     },
     stock_level: {
@@ -200,9 +213,21 @@ const ProductMutationAdd = {
       type: new GraphQLNonNull(GraphQLInt),
       description: 'The Stock Level of the product'
     }
-  },
-  resolve: (root, args) => {
-    console.log('data', args.title)
-    return client.createCategory(args);
   }
-};*/
+});
+
+export const ProductMutationAdd = {
+  type: ProductType,
+  name: 'ProductMutationAdd',
+  description: 'Add a Product',
+  args: {
+    category: {
+      type: ProductCreateInput,
+      description: 'Product creation parameters'
+    }
+  },
+  resolve: (root, {product}) => {
+    console.log('data', args.product)
+    return client.createProduct(product);
+  }
+};
