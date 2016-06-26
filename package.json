@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "schema.io client",
   "private": true,
-  "main": "node index.js",
+  "main": "BABEL_DISABLE_CACHE=1 node index.js",
   "scripts": {
     "compile": "babel -d dist/ ./index.js",
     "start": "node index.js",

@@ -44,7 +44,12 @@ function Category() {
 
 function getProducts() {
   console.log('getProducts')
-  return client.request(client.endpoint('PRODUCTS')).then(products => products.result);
+  return client.Product.Get().then(products => products.result);
+}
+
+function getProduct(id) {
+  console.log('getProduct')
+  return client.Product.Get(id).then(products => products.result);
 }
 
 function getProductsVariations(id) {
@@ -59,14 +64,6 @@ function getProductsModifiers(id) {
   console.log('getProductsModifiers');
   return client.request(client.endpoint('MODIFIERS', {id})).then(modifiers => {
     return modifiers.result;
-  });
-}
-
-function getProduct(id) {
-  console.log('getProduct')
-  return client.request(client.endpoint('PRODUCTS', {id})).then(products => {
-    //console.log(JSON.stringify(products, null, 2));
-    return products.result;
   });
 }
 

@@ -4,6 +4,12 @@ import url from 'url';
 import querystring from 'querystring';
 import template from 'url-template';
 
+import Product from './features/Product';
+import Category from './features/Category';
+import Tax from './features/Tax';
+import Brand from './features/Brand';
+import Cart from './features/Cart';
+
 export default class Moltin {
 
   constructor(credentials) {
@@ -26,36 +32,43 @@ export default class Moltin {
 
     this.AUTH_URL = url.format(authUri);
     this.authData = false;  // tokens from server
+
+    this.Product = new Product(this);
+    this.Category = new Category(this);
+    this.Tax = new Tax(this);
+    this.Brand = new Brand(this);
+    this.Cart = new Cart(this);
   }
 
   endpoint(endpoint, data = {}) {
-    let endpoints = {
-      'PRODUCTS': 'products/{id}',
-      'SEARCH_PRODUCTS': 'products/search',
-      'MODIFIERS': 'products/{id}/modifiers',
-      'VARIATIONS': 'products/{id}/variations',
-      'IMAGES': 'files',
-      'CATEGORIES': 'categories/{id}',
+    const endpoints = {
+      'PRODUCTS':          'products/{id}',
+      'SEARCH_PRODUCTS':   'products/search/{terms}',
+      'MODIFIERS':         'products/{id}/modifiers',
+      'VARIATIONS':        'products/{id}/variations',
+      'IMAGES':            'files',
+      'CATEGORIES':        'categories/{id}',
       'SEARCH_CATEGORIES': 'categories/search',
-      'TREE': 'categories/tree',
-      'TAXES': 'taxes',
-      'FLOWS': 'flows'
+      'TREE':              'categories/tree',
+      'CATEGORY_ORDER':    'categories/order',
+      'TAXES':             'taxes/{id}',
+      'FLOWS':             'flows',
+      'BRANDS':            'brands/{id}',
+      'CARTS':             'carts/{id}',
+      'CARTS_ITEMS':       'carts/{cartId}/item/{id}',
+      'CARTS_HAS':         'carts/{cartId}/has/{id}',
+      'CARTS_CHECKOUT':    'carts/{cartId}/checkout',
+      'CARTS_DISCOUNT':    'carts/{cartId}/discount'
     };
 
+    let path = template.parse(endpoints[endpoint]).expand(data).replace(/\/+$/, '');
     let api = {
       protocol: this.options.protocol,
       host: this.options.base,
-      pathname: this.options.version
+      pathname: this.options.version + `/${path}`
     };
-
-    let links = Object.keys(endpoints).reduce( (acc, k) => {
-      // Make template and remove any trailing slashes
-      let endpoint = template.parse(endpoints[k]).expand(data).replace(/\/+$/, '');
-      acc[k] = `${url.format(api)}/${endpoint}` //`{this.options.base}/${this.options.version}/${endpoints[k])}`;
-      return acc;
-    }, {});
-
-    return links[endpoint];
+    console.log('call: ', url.format(api))
+    return url.format(api);
   }
 
   authenticate() {
@@ -122,14 +135,6 @@ export default class Moltin {
     return got(uri, { encoding: null }).then(response => response.body);
   }
 
-  timeoutX() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        return resolve(1500);
-      }, 1500)
-    })
-  }
-
   async authHeader() {
     let makeHeader = token => {
       return {
@@ -137,8 +142,8 @@ export default class Moltin {
       };
     }
 
-    let expires = this.authData ? Date.now() < parseInt(this.authData.expires, 10) * 1000 : false;
-    if(expires) {
+    let expired = this.authData ? Date.now() < parseInt(this.authData.expires, 10) * 1000 : false;
+    if(expired) {
       return Promise.resolve(makeHeader(this.authData.access_token));
     }
 
@@ -148,6 +153,10 @@ export default class Moltin {
   };
 
   async request(url, options = {}) {
+    if (options.method === 'GET' && options.body !== null) {
+      url += '?' + querystring.stringify(options.body);
+      options.body = null;
+    }
     options = Object.assign(options, {
       headers: await this.authHeader(),
       json: true
@@ -178,6 +187,7 @@ export default class Moltin {
     });
   }
 
+  /*
   updateProduct(id, product) {
     return this.request(this.endpoint('PRODUCTS', {id}), {
       method: 'PUT',
@@ -215,4 +225,5 @@ export default class Moltin {
       body: null
     });
   }
+  */
 }
