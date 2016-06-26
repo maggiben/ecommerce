@@ -38,44 +38,16 @@ const client = new MoltinUtil({
   secretKey: 'qWYmQn7GsrkC7hj3UE0zzVI1u9reE9eT2dZsqpwmgu'
 });
 
-var {connectionType: productConnection} = connectionDefinitions({name: 'Product', nodeType: ProductType});
+import {
+  default as connectionFromMoltinCursor,
+  productConnection
+} from '../ApiConnection';
 
 function connectionFromPromisedArray(dataPromise, args, options) {
   return dataPromise.then(function (data) {
     return connectionFromArray(data, args, options);
   });
 }
-
-const Pagination = new GraphQLObjectType({
-  name: 'Pagination',
-  description: 'Pagination object',
-  fields: () => ({
-    total: {
-      type: GraphQLInt,
-      description: 'The total number of items that could be returned'
-    },
-    current: {
-      type: GraphQLInt,
-      description: 'The number of items returned as part of this call'
-    },
-    limit: {
-      type: GraphQLInt,
-      description: 'The maximum number of items allowed to be returned in this call. Set using the limit data field with the selected endpoint. Limit can be set from 1 to 100'
-    },
-    offset: {
-      type: GraphQLInt,
-      description: 'The position in the total list of items of the first item in the returned array'
-    },
-    from: {
-      type: GraphQLInt,
-      description: 'The ordinal number in the total list of items of the first item in this array'
-    },
-    to: {
-      type: GraphQLInt,
-      description: 'The ordinal number in the total list of items of the last item in this array'
-    }
-  })
-});
 
 export const CategoryType = new GraphQLObjectType({
   name: 'Category',
@@ -133,29 +105,22 @@ export const CategoryType = new GraphQLObjectType({
     },
     products: {
       type: productConnection,
-      args: connectionArgs,
+      args: {
+        limit: {
+          type: GraphQLInt,
+          description: 'The maximum number of products to return, up to 100 entries can be returned per request'
+        },
+        offset: {
+          type: GraphQLInt,
+          description: 'The number of products to skip from the beginning of the list'
+        },
+        ...connectionArgs,
+      },
       description: 'Products that belong to this category',
       resolve: (obj, args, {loaders}) => {
-        console.log(args);
-        let products = loaders.product.search({
-          category: obj.id
-        });
-        //console.log(JSON.stringify(products, null, 2));
-        return connectionFromPromisedArray(products, args);
+        args.category = obj.id
+        return connectionFromMoltinCursor(loaders.product.search, args);
       }
-    },
-    /*products: {
-      type: new GraphQLList(ProductType),
-      description: 'Products that belong to this category',
-      resolve: (obj, args, {loaders}) => {
-        return loaders.product.search({
-          category: obj.id
-        });
-      }
-    },*/
-    pagination: {
-      type: Pagination,
-      description: 'Pagination object'
     }
   }),
   interfaces: [nodeInterface],

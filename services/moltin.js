@@ -58,7 +58,8 @@ export default class Moltin {
       'CARTS_ITEMS':       'carts/{cartId}/item/{id}',
       'CARTS_HAS':         'carts/{cartId}/has/{id}',
       'CARTS_CHECKOUT':    'carts/{cartId}/checkout',
-      'CARTS_DISCOUNT':    'carts/{cartId}/discount'
+      'CARTS_DISCOUNT':    'carts/{cartId}/discount',
+      'CUSTOMERS':         'customers/{id}'
     };
 
     let path = template.parse(endpoints[endpoint]).expand(data).replace(/\/+$/, '');

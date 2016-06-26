@@ -44,7 +44,7 @@ function Category() {
 
 function getProducts() {
   console.log('getProducts')
-  return client.Product.Get().then(products => products.result);
+  return client.Product.Get();
 }
 
 function getProduct(id) {
@@ -54,36 +54,30 @@ function getProduct(id) {
 
 function getProductsVariations(id) {
   console.log('getProductsVariations');
-  return client.request(client.endpoint('VARIATIONS', {id})).then(variations => {
-    console.log(JSON.stringify(variations, null, 2))
-    return variations.result;
-  });
+  return client.Product.Variations(id).then(variations => variations.result);
 }
 
 function getProductsModifiers(id) {
   console.log('getProductsModifiers');
-  return client.request(client.endpoint('MODIFIERS', {id})).then(modifiers => {
-    return modifiers.result;
-  });
+  return client.Product.Modifiers(id).then(modifiers => modifiers.result);
 }
 
-function searchProduct(params) {
-  console.log('searchProduct', querystring.stringify(params))
-  let url = `${client.endpoint('SEARCH_PRODUCTS')}?${querystring.stringify(params)}`;
-  return client.request(url).then(products => {
-    //console.log(JSON.stringify(products, null, 2))
-    return products.result;
-  });
+function searchProduct(terms) {
+  console.log('searchProduct', querystring.stringify(terms))
+  return client.Product.Search(terms);/*.then(products => {
+    console.log('products: ', products)
+    return products;
+  });*/
 }
 
 function getCategories() {
   console.log('getCategories')
-  return client.request(client.endpoint('TREE')).then(products => products.result);
+  return client.Category.Tree().then(products => products.result);
 }
 
 function getCategory(id) {
   console.log('getCategory')
-  return client.request(client.endpoint('CATEGORIES', {id})).then(category => category.result);
+  return client.Category.Get(id).then(category => category.result);
 }
 
 function searchCategory(params) {

@@ -31,7 +31,22 @@ import {
   nodeInterface,
 } from './interfaces';
 
-import { globalIdField } from 'graphql-relay';
+import {
+  connectionArgs,
+  connectionDefinitions,
+  connectionFromArray
+} from 'graphql-relay';
+
+import {
+  default as connectionFromMoltinCursor,
+  productConnection
+} from './ApiConnection';
+
+function connectionFromPromisedArray(dataPromise, args, options) {
+  return dataPromise.then(function (data) {
+    return connectionFromArray(data, args, options);
+  });
+}
 
 const Mutations = new GraphQLObjectType({
   name: 'Mutations',
@@ -54,6 +69,24 @@ const QueryType = new GraphQLObjectType({
       type: new GraphQLList(ProductType),
       description: 'Retrieve a List of All Products',
       resolve: (root, args, {loaders}) => loaders.product.loadAll()
+    },
+    products: {
+      type: productConnection,
+      args: {
+        limit: {
+          type: GraphQLInt,
+          description: 'The maximum number of products to return, up to 100 entries can be returned per request'
+        },
+        offset: {
+          type: GraphQLInt,
+          description: 'The number of products to skip from the beginning of the list'
+        },
+        ...connectionArgs,
+      },
+      description: 'Retrieve a List of All Products',
+      resolve: (obj, args, {loaders}) => {
+        return connectionFromMoltinCursor(loaders.product.search, args);
+      }
     },
     product: {
       type: ProductType,
