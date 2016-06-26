@@ -6,7 +6,7 @@
   "main": "BABEL_DISABLE_CACHE=1 node index.js",
   "scripts": {
     "compile": "babel -d dist/ ./index.js",
-    "start": "node index.js",
+    "start": "BABEL_DISABLE_CACHE=1 node index.js",
     "crawl": "babel-node crawler.js",
     "save": "babel-node test.js"
   },
