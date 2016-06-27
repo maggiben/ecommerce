@@ -21,7 +21,9 @@ import {
 import {
   fromGlobalId,
   toGlobalId,
-  globalIdField
+  globalIdField,
+  connectionArgs,
+  connectionDefinitions
 } from 'graphql-relay';
 
 import uuid from 'node-uuid';
@@ -320,6 +322,51 @@ export const ProductType = new GraphQLObjectType({
   }),
   interfaces: [nodeInterface],
 });
+
+export const { connectionType: ProductConnection } = connectionDefinitions({
+  name: 'Product',
+  nodeType: ProductType
+});
+
+
+export const connectionProductArgs = {
+  title: {
+    type: GraphQLString,
+    description: 'The Title of the product, must be unique'
+  },
+  price: {
+    type: GraphQLFloat,
+    description: 'The Price of the product'
+  },
+  category: {
+    type: GraphQLString,
+    description: 'The Category of the product'
+  },
+  slug: {
+    type: GraphQLString,
+    description: 'The Slug/URI of the product, must be unique'
+  },
+  status: {
+    type: ProductStatus,
+    description: 'Is the product Live or a Draft'
+  },
+  stock_status: {
+    type: StockStatus,
+    description: 'The Stock Status of the product'
+  },
+  /*
+    Pagination Arguments
+  */
+  limit: {
+    type: GraphQLInt,
+    description: 'The maximum number of products to return, up to 100 entries can be returned per request'
+  },
+  offset: {
+    type: GraphQLInt,
+    description: 'The number of products to skip from the beginning of the list'
+  },
+  ...connectionArgs
+};
 
 const ProductCreateInput = new GraphQLInputObjectType({
   name: 'ProductCreateInput',

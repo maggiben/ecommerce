@@ -48,7 +48,7 @@ export default class Moltin {
       'VARIATIONS':        'products/{id}/variations',
       'IMAGES':            'files',
       'CATEGORIES':        'categories/{id}',
-      'SEARCH_CATEGORIES': 'categories/search',
+      'SEARCH_CATEGORIES': 'categories/search/{terms}',
       'TREE':              'categories/tree',
       'CATEGORY_ORDER':    'categories/order',
       'TAXES':             'taxes/{id}',
@@ -68,7 +68,6 @@ export default class Moltin {
       host: this.options.base,
       pathname: this.options.version + `/${path}`
     };
-    console.log('call: ', url.format(api))
     return url.format(api);
   }
 
@@ -158,6 +157,7 @@ export default class Moltin {
       url += '?' + querystring.stringify(options.body);
       options.body = null;
     }
+    console.log('call: ', url)
     options = Object.assign(options, {
       headers: await this.authHeader(),
       json: true

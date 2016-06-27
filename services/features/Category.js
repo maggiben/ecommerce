@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import Abstract from '../Abstract';
 
 export default class Category extends Abstract {
@@ -8,6 +9,10 @@ export default class Category extends Abstract {
     this.api = api;
   }
 
+  Search(terms) {
+    let query = '/?' + querystring.stringify(terms);
+    return this.api.request(this.api.endpoint('SEARCH_CATEGORIES') + query);
+  }
   Tree() {
     return this.api.request(this.api.endpoint('TREE'));
   }

@@ -15,7 +15,9 @@ import {
   ProductType,
   ProductMutationAdd,
   ProductMutationUpdate,
-  ProductMutationDelete
+  ProductMutationDelete,
+  ProductConnection,
+  connectionProductArgs
 } from '../Models/Product/Product';
 
 import {
@@ -23,7 +25,9 @@ import {
   CategoryTreeType,
 	CategoryMutationAdd,
 	CategoryMutationUpdate,
-  CategoryMutationDelete
+  CategoryMutationDelete,
+  CategoryConnection,
+  connectionCategoryArgs
 } from '../Models/Category/Category';
 
 import {
@@ -38,9 +42,7 @@ import {
 } from 'graphql-relay';
 
 import {
-  default as connectionFromMoltinCursor,
-  productConnection,
-  connectionApiArgs
+  default as connectionFromMoltinCursor
 } from './ApiConnection';
 
 function connectionFromPromisedArray(dataPromise, args, options) {
@@ -72,8 +74,8 @@ const QueryType = new GraphQLObjectType({
       resolve: (root, args, {loaders}) => loaders.product.loadAll()
     },
     products: {
-      type: productConnection,
-      args: connectionApiArgs,
+      type: ProductConnection,
+      args: connectionProductArgs,
       description: 'Retrieve a List of All Products',
       resolve: (obj, args, {loaders}) => {
         return connectionFromMoltinCursor(loaders.product.search, args);
@@ -115,6 +117,21 @@ const QueryType = new GraphQLObjectType({
             tree: tree
           }
         })
+      }
+    },
+    /*allCategories: {
+      type: categoryConnection,
+      args: connectionApiArgs,
+      resolve: (root, args, {loaders}) => {
+        return connectionFromMoltinCursor(loaders.category.loadAll, args);
+      }
+    },*/
+    categories: {
+      type: CategoryConnection,
+      args: connectionCategoryArgs,
+      description: 'Retrieve a List of All Products',
+      resolve: (obj, args, {loaders}) => {
+        return connectionFromMoltinCursor(loaders.category.search, args);
       }
     },
     category: {

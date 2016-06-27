@@ -14,12 +14,12 @@ import {
 } from 'graphql';
 
 import {
-  connectionArgs,
-  connectionDefinitions,
-  connectionFromArray,
   fromGlobalId,
   globalIdField,
   nodeDefinitions,
+  connectionArgs,
+  connectionDefinitions,
+  connectionFromArray,
 } from 'graphql-relay';
 
 import {
@@ -28,7 +28,9 @@ import {
 } from '../interfaces';
 
 import {
-  ProductType
+  ProductType,
+  ProductConnection,
+  connectionProductArgs
 } from '../Product/Product';
 
 import MoltinUtil from '../../services/moltin';
@@ -39,8 +41,7 @@ const client = new MoltinUtil({
 });
 
 import {
-  default as connectionFromMoltinCursor,
-  productConnection
+  default as connectionFromMoltinCursor
 } from '../ApiConnection';
 
 function connectionFromPromisedArray(dataPromise, args, options) {
@@ -48,6 +49,16 @@ function connectionFromPromisedArray(dataPromise, args, options) {
     return connectionFromArray(data, args, options);
   });
 }
+
+
+const CategoryStatus = new GraphQLEnumType({
+  name: 'CategoryStatus',
+  description: 'Choices available are DRAFT (0) and LIVE (1)',
+  values: {
+    DRAFT: { value: 0 },
+    LIVE: { value: 1 }
+  }
+});
 
 export const CategoryType = new GraphQLObjectType({
   name: 'Category',
@@ -70,7 +81,7 @@ export const CategoryType = new GraphQLObjectType({
       description: 'The order in which this category appears'
     },
     status: {
-      type: GraphQLBoolean,
+      type: CategoryStatus,
       description: 'Is the category Live or a Draft'
     },
     description: {
@@ -104,18 +115,8 @@ export const CategoryType = new GraphQLObjectType({
       }
     },
     products: {
-      type: productConnection,
-      args: {
-        limit: {
-          type: GraphQLInt,
-          description: 'The maximum number of products to return, up to 100 entries can be returned per request'
-        },
-        offset: {
-          type: GraphQLInt,
-          description: 'The number of products to skip from the beginning of the list'
-        },
-        ...connectionArgs,
-      },
+      type: ProductConnection,
+      args: connectionProductArgs,
       description: 'Products that belong to this category',
       resolve: (obj, args, {loaders}) => {
         args.category = obj.id
@@ -125,6 +126,62 @@ export const CategoryType = new GraphQLObjectType({
   }),
   interfaces: [nodeInterface],
 });
+
+export const { connectionType: CategoryConnection } = connectionDefinitions({
+  name: 'CategoryConnection',
+  nodeType: CategoryType,
+  resolveNode: edge => {
+    console.log('EDGE', edge)
+    return edge;
+  }
+});
+
+/*
+var {connectionType: friendConnection} = connectionDefinitions({
+  name: 'Friend',
+  nodeType: userType,
+  resolveNode: edge => allUsers[edge.node],
+  edgeFields: () => ({
+    friendshipTime: {
+      type: GraphQLString,
+      resolve: () => 'Yesterday'
+    }
+  }),
+  connectionFields: () => ({
+    totalCount: {
+      type: GraphQLInt,
+      resolve: () => allUsers.length - 1
+    }
+  }),
+});
+*/
+
+export const connectionCategoryArgs = {
+  title: {
+    type: GraphQLString,
+    description: 'The Title of the product, must be unique'
+  },
+  slug: {
+    type: GraphQLString,
+    description: 'The Slug/URI of the product, must be unique'
+  },
+  status: {
+    type: CategoryStatus,
+    description: 'Is the product Live or a Draft'
+  },
+  /*
+    Pagination Arguments
+  */
+  limit: {
+    type: GraphQLInt,
+    description: 'The maximum number of products to return, up to 100 entries can be returned per request'
+  },
+  offset: {
+    type: GraphQLInt,
+    description: 'The number of products to skip from the beginning of the list'
+  },
+  ...connectionArgs
+};
 
 //curl -X GET https://api.molt.in/v1/categories/tree -H "Authorization: Bearer b43ecfc57deecf930aa7b3df10f90d859ead9f4d"
 
@@ -141,15 +198,6 @@ export const CategoryTreeType = new GraphQLObjectType({
     }
   }),
   interfaces: [nodeInterface]
-});
-
-const CategoryStatus = new GraphQLEnumType({
-  name: 'CategoryStatus',
-  description: 'Choices available are DRAFT (0) and LIVE (1)',
-  values: {
-    DRAFT: { value: 0 },
-    LIVE: { value: 1 }
-  }
 });
 
 const CategoryCreateInput = new GraphQLInputObjectType({

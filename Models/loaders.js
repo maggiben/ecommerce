@@ -77,8 +77,10 @@ function getCategory(id) {
   return client.Category.Get(id).then(category => category.result);
 }
 
-function searchCategory(params) {
-  console.log('searchCategory', querystring.stringify(params))
-  let url = `${client.endpoint('CATEGORIES')}?${querystring.stringify(params)}`;
-  return client.request(url).then(category => category.result);
+function searchCategory(terms) {
+
+  return client.Category.Search(terms);
+  console.log('searchCategory', querystring.stringify(terms))
+  let url = `${client.endpoint('CATEGORIES')}?${querystring.stringify(terms)}`;
+  return client.request(url);
 }
