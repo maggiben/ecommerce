@@ -64,10 +64,7 @@ function getProductsModifiers(id) {
 
 function searchProduct(terms) {
   console.log('searchProduct', querystring.stringify(terms))
-  return client.Product.Search(terms);/*.then(products => {
-    console.log('products: ', products)
-    return products;
-  });*/
+  return client.Product.Search(terms);
 }
 
 function getCategories() {

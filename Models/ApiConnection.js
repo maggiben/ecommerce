@@ -1,10 +1,26 @@
 import {
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLSchema,
+  GraphQLString,
+  GraphQLBoolean,
+  GraphQLInt,
+  GraphQLFloat
+} from 'graphql';
+
+import {
   connectionArgs,
   connectionDefinitions
 } from 'graphql-relay';
 
 import {
-  ProductType
+  ProductType,
+  StockStatus
 } from './Product/Product';
 
 import {
@@ -41,29 +57,33 @@ export default async function connectionFromMoltinCursor(inApiCursor, args = {},
   };
 }
 
-/*
-{ after:
-   { type:
-      GraphQLScalarType {
-        name: 'String',
-        description: 'The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.',
-        _scalarConfig: [Object] } },
-  first:
-   { type:
-      GraphQLScalarType {
-        name: 'Int',
-        description: 'The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1. ',
-        _scalarConfig: [Object] } },
-  before:
-   { type:
-      GraphQLScalarType {
-        name: 'String',
-        description: 'The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.',
-        _scalarConfig: [Object] } },
-  last:
-   { type:
-      GraphQLScalarType {
-        name: 'Int',
-        description: 'The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1. ',
-        _scalarConfig: [Object] } } }
-*/
+export const connectionApiArgs = {
+  title: {
+    type: GraphQLString,
+    description: 'The Title of the product, must be unique'
+  },
+  price: {
+    type: GraphQLFloat,
+    description: 'The Price of the product'
+  },
+  category: {
+    type: GraphQLString,
+    description: 'The Category of the product'
+  },
+  stock_status: {
+    type: StockStatus,
+    description: 'The Stock Status of the product'
+  },
+  /*
+    Pagination Arguments
+  */
+  limit: {
+    type: GraphQLInt,
+    description: 'The maximum number of products to return, up to 100 entries can be returned per request'
+  },
+  offset: {
+    type: GraphQLInt,
+    description: 'The number of products to skip from the beginning of the list'
+  },
+  ...connectionArgs
+};

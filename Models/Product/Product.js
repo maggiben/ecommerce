@@ -79,7 +79,7 @@ const GraphQLDate = new GraphQLScalarType({
   }
 });
 
-const ProductStatus = new GraphQLEnumType({
+export const ProductStatus = new GraphQLEnumType({
   name: 'ProductStatus',
   description: 'Choices available are DRAFT (0) and LIVE (1)',
   values: {
@@ -88,7 +88,7 @@ const ProductStatus = new GraphQLEnumType({
   }
 });
 
-const StockStatus = new GraphQLEnumType({
+export const StockStatus = new GraphQLEnumType({
   name: 'StockStatus',
   description: 'The Stock Status of the product',
   values: {
@@ -101,7 +101,7 @@ const StockStatus = new GraphQLEnumType({
   }
 });
 
-const RequiresShipping = new GraphQLEnumType({
+export const RequiresShipping = new GraphQLEnumType({
   name: 'RequiresShipping',
   description: 'Does the product require Shipping?',
   values: {
@@ -110,7 +110,7 @@ const RequiresShipping = new GraphQLEnumType({
   }
 });
 
-const CatalogOnly = new GraphQLEnumType({
+export const CatalogOnly = new GraphQLEnumType({
   name: 'CatalogOnly',
   description: 'Indicates whether this product is only listed in the catalog and not for sale',
   values: {
@@ -169,7 +169,7 @@ const ImageDetails = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-const Image = new GraphQLObjectType({
+export const Image = new GraphQLObjectType({
   name: 'Image',
   description: 'Product images',
   fields: () => ({
@@ -512,28 +512,3 @@ export const ProductMutationDelete = {
     });
   }
 };
-/*
-{
-  product(id: "1279009237539750439") {
-    id
-    title
-    modifiers {
-      id
-      title
-      variations {
-        id
-        title
-        modPrice
-      }
-    }
-    variations {
-      id
-      title
-      modifiers {
-        id
-      }
-    }
-  }
-}
-
-*/

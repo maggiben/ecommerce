@@ -39,7 +39,8 @@ import {
 
 import {
   default as connectionFromMoltinCursor,
-  productConnection
+  productConnection,
+  connectionApiArgs
 } from './ApiConnection';
 
 function connectionFromPromisedArray(dataPromise, args, options) {
@@ -72,17 +73,7 @@ const QueryType = new GraphQLObjectType({
     },
     products: {
       type: productConnection,
-      args: {
-        limit: {
-          type: GraphQLInt,
-          description: 'The maximum number of products to return, up to 100 entries can be returned per request'
-        },
-        offset: {
-          type: GraphQLInt,
-          description: 'The number of products to skip from the beginning of the list'
-        },
-        ...connectionArgs,
-      },
+      args: connectionApiArgs,
       description: 'Retrieve a List of All Products',
       resolve: (obj, args, {loaders}) => {
         return connectionFromMoltinCursor(loaders.product.search, args);
