@@ -77,7 +77,8 @@ const QueryType = new GraphQLObjectType({
       type: ProductConnection,
       args: connectionProductArgs,
       description: 'Retrieve a List of All Products',
-      resolve: (obj, args, {loaders}) => {
+      resolve: (obj, args, {session, loaders}) => {
+        console.log(JSON.stringify(session, null, 2));
         return connectionFromMoltinCursor(loaders.product.search, args);
       }
     },

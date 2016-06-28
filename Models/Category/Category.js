@@ -129,11 +129,7 @@ export const CategoryType = new GraphQLObjectType({
 
 export const { connectionType: CategoryConnection } = connectionDefinitions({
   name: 'CategoryConnection',
-  nodeType: CategoryType,
-  resolveNode: edge => {
-    console.log('EDGE', edge)
-    return edge;
-  }
+  nodeType: CategoryType
 });
 
 /*
