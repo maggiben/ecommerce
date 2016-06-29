@@ -48,8 +48,9 @@ app.use('/graphql', graphqlHTTP(request => {
       session: request.session,
       loaders: loaders
     },
+    pretty: true,
     graphiql: true,
-    rootValue: { session: request.session },
+    rootValue: request,
     schema,
   };
 }));

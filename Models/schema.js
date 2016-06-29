@@ -18,17 +18,18 @@ import {
   ProductMutationDelete,
   ProductConnection,
   connectionProductArgs
-} from '../Models/Product/Product';
+} from './Product/Product';
 
 import {
-	CategoryType,
+  CategoryType,
   CategoryTreeType,
-	CategoryMutationAdd,
-	CategoryMutationUpdate,
+  CategoryMutationAdd,
+  CategoryMutationUpdate,
   CategoryMutationDelete,
   CategoryConnection,
-  connectionCategoryArgs
-} from '../Models/Category/Category';
+  connectionCategoryArgs,
+  CategoryViewer
+} from './Category/Category';
 
 import {
   nodeField,
@@ -44,6 +45,10 @@ import {
 import {
   default as connectionFromMoltinCursor
 } from './ApiConnection';
+
+import {
+  Viewer
+} from './Viewer/Viewer'
 
 function connectionFromPromisedArray(dataPromise, args, options) {
   return dataPromise.then(function (data) {
@@ -135,6 +140,12 @@ const QueryType = new GraphQLObjectType({
         return connectionFromMoltinCursor(loaders.category.search, args);
       }
     },
+    categoriesViewer: {
+      type: CategoryViewer,
+      resolve: (obj, args, {loaders}) => {
+        return connectionFromMoltinCursor(loaders.category.search, args);
+      }
+    },
     category: {
       type: CategoryType,
       description: 'Retrieve a Single Category by ID',
@@ -171,6 +182,6 @@ const QueryType = new GraphQLObjectType({
 });
 
 export default new GraphQLSchema({
-  query: QueryType,
+  query: Viewer,
   mutation: Mutations
 });

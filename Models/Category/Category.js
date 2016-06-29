@@ -33,6 +33,8 @@ import {
   connectionProductArgs
 } from '../Product/Product';
 
+import connectionApiDefinitions from '../connection.js';
+
 import MoltinUtil from '../../services/moltin';
 
 const client = new MoltinUtil({
@@ -127,9 +129,24 @@ export const CategoryType = new GraphQLObjectType({
   interfaces: [nodeInterface],
 });
 
-export const { connectionType: CategoryConnection } = connectionDefinitions({
+export const {connectionType: CategoryConnection} = connectionApiDefinitions({
   name: 'CategoryConnection',
-  nodeType: CategoryType
+  nodeType: CategoryType,
+  //resolveNode: edge => allUsers[edge.node],
+  edgeFields: () => ({
+    limit: {
+      type: GraphQLInt,
+      resolve: () => 'Yesterday'
+    }
+  }),
+  connectionFields: () => ({
+    totalCount: {
+      type: GraphQLInt,
+      resolve: (obj) => {
+        return obj.totalCount;
+      }
+    }
+  }),
 });
 
 /*
@@ -191,6 +208,30 @@ export const CategoryTreeType = new GraphQLObjectType({
     },
     tree: {
       type: new GraphQLList(CategoryType)
+    }
+  }),
+  interfaces: [nodeInterface]
+});
+
+export const CategoryViewer = new GraphQLObjectType({
+  name: 'CategoryViewer',
+  description: 'Categories tree hierarchy',
+  fields: () => ({
+    id: globalIdField('CategoryViewer'),
+    name: {
+      type: GraphQLString,
+      resolve: () => 'CategoryViewer!'
+    },
+    categories: {
+      type: CategoryConnection,
+      args: connectionCategoryArgs,
+      resolve: (obj, args, {loaders}) => {
+        console.log('OBJVIEWER: ', obj)
+        return obj;
+      }
+      /*resolve: obj => {
+        console.log('OBJVIEWER: ', obj)
+      }*/
     }
   }),
   interfaces: [nodeInterface]
